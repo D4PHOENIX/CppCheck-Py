@@ -1,2 +1,4 @@
 __pycache__/
-CppCheck-Py\CppCheck_Py.egg-info/
+CppCheck_Py.egg-info/
+.vscode/
+.pytest_cache/
