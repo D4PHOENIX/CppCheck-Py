@@ -2,3 +2,5 @@ __pycache__/
 CppCheck_Py.egg-info/
 .vscode/
 .pytest_cache/
+build/
+dist/
