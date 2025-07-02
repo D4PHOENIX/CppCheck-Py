@@ -7,8 +7,8 @@ class Program:
 @dataclass
 class Declaration:
     var_type: str
-    name: str
-    value: object
+    name: object
+    value: object = None
     
 @dataclass
 class Assignment:
