@@ -24,6 +24,13 @@ class Parser:
         self.tokens = tokens
         self.pos = 0
 
+    def skip_newlines(self):
+        """
+        Advance past any NEWLINE tokens.
+        """
+        while self.current.type == 'NEWLINE':
+            self.advance()
+            
     @property
     def current(self) -> Token:
         """
@@ -74,6 +81,9 @@ class Parser:
         """
         stmts = []
         while self.current.type != 'EOF':
+            self.skip_newlines()
+            if self.current.type == 'EOF':
+                break
             stmts.append(self.parse_statement())
         return Program(stmts)
 
@@ -85,6 +95,7 @@ class Parser:
         Raises:
             ParserError: If the statement is invalid.
         """
+        self.skip_newlines()
         if self.current.type == 'KEYWORD' and self.current.value == 'int':
             return self.parse_declaration()
         if self.current.type == 'ID':
