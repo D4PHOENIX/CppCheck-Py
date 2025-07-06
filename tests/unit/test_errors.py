@@ -7,10 +7,7 @@ def test_parser_error_str_basic():
 
 def test_parser_error_with_location_and_hint():
     err = ParserError(
-        message="Invalid token",
-        line=2,
-        column=5,
-        hint="Check your operators"
+        message="Invalid token", line=2, column=5, hint="Check your operators"
     )
     s = str(err)
     assert "Line 2, Column 5:" in s
