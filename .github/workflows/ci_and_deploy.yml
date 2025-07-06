@@ -1,46 +1,33 @@
 name: CI & Deploy to HF Space
 
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
+on: [push, pull_request]
 
 jobs:
   test:
-    name: 🧪 Lint & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
-
       - name: Install dependencies
         run: |
-          pip install -e .        # installs your package
-          pip install pytest      # for your tests
-
+          pip install -e .
+          pip install pytest
       - name: Run tests
-        run: pytest --maxfail=1 --disable-warnings -q
+        run: pytest
 
   deploy:
-    name: 🚀 Deploy to Hugging Face Space
     needs: test
-    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          lfs: true
-
       - name: Deploy to HF Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           git remote add hf https://$HF_TOKEN@huggingface.co/spaces/D4PHOENIX/cppcheck-py-space
-          git push hf main
+          git push hf main --force
