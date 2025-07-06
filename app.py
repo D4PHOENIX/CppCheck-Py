@@ -46,6 +46,7 @@ elif mode == "Type code":
 if code:
     st.code(code, language="c")
     if st.button("Check Syntax"):
+        code = code.replace('\r\n', '\n').replace('\r', '\n')
         with st.spinner("Analyzing..."):
             try:
                 program = Checker.check_syntax(code)
