@@ -15,6 +15,9 @@ short_description: Streamlit template space
 
 > A Python‑based syntax checker for a defined subset of C++.
 
+A web and CLI C++ syntax checker built with Python and Streamlit.
+- **Live demo:** [cppcheck-py-space on Hugging Face](https://huggingface.co/spaces/D4PHOENIX/cppcheck-py-space)
+
 ## Table of Contents
 
 - [CppCheck-Py](#cppcheck-py)
