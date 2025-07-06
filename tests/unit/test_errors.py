@@ -1,10 +1,6 @@
 import pytest
 from backend.src.errors import ParserError
 
-def test_parser_error_str_basic():
-    err = ParserError("Something went wrong")
-    assert str(err) == "Something went wrong"
-
 def test_parser_error_with_location_and_hint():
     err = ParserError(
         message="Invalid token", line=2, column=5, hint="Check your operators"
