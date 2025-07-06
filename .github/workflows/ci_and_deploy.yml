@@ -9,18 +9,21 @@ on:
 
 jobs:
   test:
-    name: 🧪 Tests
+    name: 🧪 Lint & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-      - name: Install dev dependencies
+          python-version: "3.10"
+
+      - name: Install dependencies
         run: |
-          pip install -e .  # installs your package and streamlit
-          pip install pytest
+          pip install -e .        # installs your package
+          pip install pytest      # for your tests
+
       - name: Run tests
         run: pytest --maxfail=1 --disable-warnings -q
 
@@ -34,7 +37,8 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
-      - name: Push to HF Space
+
+      - name: Deploy to HF Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
