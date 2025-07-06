@@ -1,7 +1,12 @@
+"""Recursive-descent parser for the C++-like language.
+
+Implements the Parser class, which parses a list of tokens into an AST.
+Supports declarations, assignments, and basic expressions.
+"""
 from typing import List
-from .token import Token
-from .ast import Program, Declaration, Assignment, BinaryOp, Literal, Identifier
+from .ast import (Assignment, BinaryOp, Declaration, Identifier, Literal, Program)
 from .errors import ParserError
+from .token import Token
 
 class Parser:
     """
@@ -28,9 +33,9 @@ class Parser:
         """
         Advance past any NEWLINE tokens.
         """
-        while self.current.type == 'NEWLINE':
+        while self.current.type == "NEWLINE":
             self.advance()
-            
+
     @property
     def current(self) -> Token:
         """
@@ -41,7 +46,7 @@ class Parser:
         if self.pos < len(self.tokens):
             return self.tokens[self.pos]
         last = self.tokens[-1]
-        return Token('EOF', '', last.line, last.column)
+        return Token("EOF", "", last.line, last.column)
 
     def advance(self) -> Token:
         """
@@ -66,10 +71,9 @@ class Parser:
         """
         tok = self.current
         if tok.type != type_ or (value is not None and tok.value != value):
-            desc = f"{type_}{' '+value if value else ''}"
+            desc = f"{type_}{' ' + value if value else ''}"
             raise ParserError(
-                f"Expected {desc} but got '{tok.value}'",
-                tok.line, tok.column
+                f"Expected {desc} but got '{tok.value}'", tok.line, tok.column
             )
         return self.advance()
 
@@ -80,9 +84,9 @@ class Parser:
             Program: The root AST node for the program.
         """
         stmts = []
-        while self.current.type != 'EOF':
+        while self.current.type != "EOF":
             self.skip_newlines()
-            if self.current.type == 'EOF':
+            if self.current.type == "EOF":
                 break
             stmts.append(self.parse_statement())
         return Program(stmts)
@@ -96,34 +100,41 @@ class Parser:
             ParserError: If the statement is invalid.
         """
         self.skip_newlines()
-        if self.current.type == 'KEYWORD' and self.current.value == 'int':
+        if self.current.type == "KEYWORD" and self.current.value == "int":
             return self.parse_declaration()
-        if self.current.type == 'ID':
+        if self.current.type == "ID":
             return self.parse_assignment()
         tok = self.current
         raise ParserError(
             f"Unexpected token '{tok.value}' in statement",
-            tok.line, tok.column,
-            hint="Statements must start with a type keyword or identifier."
+            tok.line,
+            tok.column,
+            hint="Statements must start with a type keyword or identifier.",
         )
 
     def parse_declaration(self) -> Declaration:
         """
-        Parse a declaration: 'int' ID ';'.
+        Parse a declaration: 'int' ID [= expression] ';'.
         Returns:
             Declaration: The declaration AST node.
         """
         self.advance()  # consume 'int'
-        id_tok = self.expect('ID')
+        id_tok = self.expect("ID")
+        value = None
+        # Support optional initialization
+        if self.current.type == "OP" and self.current.value == "=":
+            self.advance()
+            value = self.parse_expression()
         sep = self.current
-        if sep.type != 'SEP' or sep.value != ';':
+        if sep.type != "SEP" or sep.value != ";":
             raise ParserError(
                 "Expected ';' after declaration",
-                sep.line, sep.column,
-                hint="Terminate declarations with a semicolon."
+                sep.line,
+                sep.column,
+                hint="Terminate declarations with a semicolon.",
             )
         self.advance()
-        return Declaration('int', Identifier(id_tok.value), None)
+        return Declaration("int", Identifier(id_tok.value), value)
 
     def parse_assignment(self) -> Assignment:
         """
@@ -131,15 +142,16 @@ class Parser:
         Returns:
             Assignment: The assignment AST node.
         """
-        id_tok = self.expect('ID')
-        self.expect('OP', '=')
+        id_tok = self.expect("ID")
+        self.expect("OP", "=")
         expr = self.parse_expression()
         sep = self.current
-        if sep.type != 'SEP' or sep.value != ';':
+        if sep.type != "SEP" or sep.value != ";":
             raise ParserError(
                 "Expected ';' after assignment",
-                sep.line, sep.column,
-                hint="Terminate assignments with a semicolon."
+                sep.line,
+                sep.column,
+                hint="Terminate assignments with a semicolon.",
             )
         self.advance()
         return Assignment(Identifier(id_tok.value), expr)
@@ -151,7 +163,7 @@ class Parser:
             AST node: The parsed expression node.
         """
         node = self.parse_primary()
-        while self.current.type == 'OP':
+        while self.current.type == "OP":
             op_tok = self.advance()
             right = self.parse_primary()
             node = BinaryOp(op_tok.value, node, right)
@@ -166,14 +178,15 @@ class Parser:
             ParserError: If the token is not a valid primary.
         """
         tok = self.current
-        if tok.type == 'LITERAL':
+        if tok.type == "LITERAL":
             self.advance()
             return Literal(tok.value)
-        if tok.type == 'ID':
+        if tok.type == "ID":
             self.advance()
             return Identifier(tok.value)
         raise ParserError(
             f"Unexpected token '{tok.value}' in expression",
-            tok.line, tok.column,
-            hint="Expected a literal or identifier."
+            tok.line,
+            tok.column,
+            hint="Expected a literal or identifier.",
         )
