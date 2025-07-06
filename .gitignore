@@ -1,0 +1,12 @@
+# compiled python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# pytest
+.pytest_cache/
+
+# packaging
+*.egg-info/
+dist/
+build/
