@@ -22,21 +22,30 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e .
-          pip install pytest coverage
+          pip install pytest coverage lxml
 
-      - name: Run tests with coverage
-        id: run_tests
+      - name: Run tests with coverage (generate JUnit XML)
         run: |
-          passed=$(coverage run -m pytest --disable-warnings -q | tee /dev/tty | grep -oP '^\d+\spassed' | grep -oP '^\d+' || echo 0)
-          echo "✅ Passed tests: $passed"
-          echo "passed=$passed" >> $GITHUB_OUTPUT
+          coverage run -m pytest --disable-warnings --junitxml=pytest-results.xml
           coverage report
           coverage xml
-          exit 0
+
+      - name: Check passed test count
+        id: check_tests
+        run: |
+          passed=$(python -c "
+            import xml.etree.ElementTree as ET
+            tree = ET.parse('pytest-results.xml')
+            root = tree.getroot()
+            passed = sum(int(ts.attrib.get('tests', 0)) - int(ts.attrib.get('failures', 0)) - int(ts.attrib.get('errors', 0)) for ts in root.iter('testsuite'))
+            print(passed)
+            " || echo 0)
+          echo "✅ Passed tests: $passed"
+          echo "passed=$passed" >> $GITHUB_OUTPUT
 
       - name: Fail if not enough tests passed
         run: |
-          if [ "${{ steps.run_tests.outputs.passed }}" -lt 9 ]; then
+          if [ "${{ steps.check_tests.outputs.passed }}" -lt 9 ]; then
             echo "❌ Not enough tests passed."
             exit 1
           fi
