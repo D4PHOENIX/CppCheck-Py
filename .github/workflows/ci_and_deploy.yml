@@ -10,6 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -28,8 +29,12 @@ jobs:
         run: |
           coverage run -m pytest --disable-warnings -q > pytest_output.log || true
           passed=$(grep -oP '^\d+\spassed' pytest_output.log | grep -oP '^\d+')
+          passed=${passed:-0}
           echo "✅ Passed tests: $passed"
           echo "passed=$passed" >> $GITHUB_OUTPUT
+          coverage report
+          coverage xml
+          exit 0
 
       - name: Fail if not enough tests passed
         run: |
@@ -39,20 +44,18 @@ jobs:
           fi
           echo "✅ Sufficient tests passed."
 
-      - name: Show coverage report
-        run: |
-          coverage report
-          coverage xml
-
   deploy:
     needs: test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-        with: 
+        with:
           fetch-depth: 0
-      - env:
+
+      - name: Push to Hugging Face Space
+        env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           git remote add hf https://$HF_TOKEN@huggingface.co/spaces/D4PHOENIX/cppcheck-py-space
